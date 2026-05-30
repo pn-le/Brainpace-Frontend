@@ -18,6 +18,7 @@ import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_7
 import HomeScreen from './src/screens/HomeScreen';
 import LiveScreen from './src/screens/LiveScreen';
 import StudyScreen from './src/screens/StudyScreen';
+import CoachScreen from './src/screens/CoachScreen';
 import { colors } from './src/theme';
 
 const Tab = createBottomTabNavigator();
@@ -29,7 +30,6 @@ function Placeholder({ title }: { title: string }) {
     </View>
   );
 }
-const CoachScreen = () => <Placeholder title="Coach" />;
 const YouScreen = () => <Placeholder title="You" />;
 
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
