@@ -33,7 +33,7 @@ const CoachScreen = () => <Placeholder title="Coach" />;
 const YouScreen = () => <Placeholder title="You" />;
 
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
-  const icons: Record<string, string> = { Home: '⌂', Live: '◎', Report: '⊞', Coach: '✦', You: '○' };
+  const icons: Record<string, string> = { Home: '⌂', Latest: '◎', Report: '⊞', Coach: '✦', You: '○' };
   const tint = focused ? colors.purp : colors.ts;
   return (
     <View style={{ alignItems: 'center', width: 60 }}>
@@ -62,7 +62,7 @@ export default function App() {
           })}
         >
           <Tab.Screen name="Home" component={HomeScreen} />
-          <Tab.Screen name="Live" component={LiveScreen} />
+          <Tab.Screen name="Latest" component={LiveScreen} />
           <Tab.Screen name="Report" component={StudyScreen} />
           <Tab.Screen name="Coach" component={CoachScreen} />
           <Tab.Screen name="You" component={YouScreen} />
