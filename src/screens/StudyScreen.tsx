@@ -94,7 +94,7 @@ export default function StudyScreen() {
     { label: 'DURATION', value: formatDuration(sessionSec), color: colors.textPrimary },
     { label: 'AVG TBR', value: tbr.toFixed(1), color: colors.teal },
     { label: 'BREAKS', value: `${breakCount}/3`, color: colors.textPrimary },
-    { label: 'RETAIN', value: `${retention}%`, color: colors.okGreen },
+    { label: 'RETAIN*', value: `${retention}%`, color: colors.okGreen },
   ];
 
   return (
@@ -138,6 +138,7 @@ export default function StudyScreen() {
           <View style={{ flex: 1 }}><Text style={s.predStatLabel}>Recovery</Text><Text style={[s.predStatVal, { color: colors.teal }]}>8-10 min</Text></View>
         </View>
         <Text style={s.predNote}>{'\u2192'} You lose ~40% retention past TBR 3.5</Text>
+        <Text style={s.demoLabel}>Illustrative forecast {'\u2014'} not measured data</Text>
       </View>
 
       <Text style={s.sectionTitle}>Past Sessions</Text>
@@ -189,6 +190,7 @@ const s = StyleSheet.create({
   predStatLabel: { fontSize: 9, color: colors.textMuted },
   predStatVal: { fontSize: 18, fontWeight: '700', marginTop: 4 },
   predNote: { fontSize: 10, color: colors.textMuted, marginTop: 14 },
+  demoLabel: { fontSize: 9, color: colors.textMuted, fontStyle: 'italic', marginTop: 8 },
 
   sectionTitle: { fontSize: 16, fontWeight: '600', color: colors.textPrimary, marginTop: 24, marginBottom: 12 },
   sessionRow: { flexDirection: 'row', backgroundColor: colors.inkCard, borderRadius: 12, marginBottom: 8, overflow: 'hidden', alignItems: 'center', borderWidth: 1, borderColor: colors.inkBorder },

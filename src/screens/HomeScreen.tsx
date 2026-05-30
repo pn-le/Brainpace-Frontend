@@ -102,7 +102,7 @@ function TBRChart() {
   );
 }
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }: any) {
   const knobLeft = (TBR / TBR_MAX) * 100;
 
   return (
@@ -188,6 +188,11 @@ export default function HomeScreen() {
           </View>
         </View>
       </TouchableOpacity>
+
+      {/* Start session */}
+      <TouchableOpacity style={s.startBtn} activeOpacity={0.8} onPress={() => navigation.navigate('Connect')}>
+        <Text style={s.startBtnText}>Start New Session</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -244,4 +249,7 @@ const s = StyleSheet.create({
   calloutTitle: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
   calloutSub: { fontSize: 12, fontWeight: '500', color: colors.textSecondary, marginTop: 3 },
   calloutAction: { fontSize: 12, fontWeight: '700', color: colors.violet, marginTop: 4 },
+
+  startBtn: { backgroundColor: colors.teal, borderRadius: 14, height: 48, alignItems: 'center', justifyContent: 'center', marginTop: 18 },
+  startBtnText: { fontSize: 14, fontWeight: '700', color: colors.bgBase },
 });
