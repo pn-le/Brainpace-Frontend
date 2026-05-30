@@ -14,6 +14,7 @@ import BaselineScreen from './src/screens/BaselineScreen';
 import LiveMonitorScreen from './src/screens/LiveMonitorScreen';
 import RecoveryScreen from './src/screens/RecoveryScreen';
 import SummaryScreen from './src/screens/SummaryScreen';
+import CoachScreen from './src/screens/CoachScreen';
 import { colors } from './src/theme';
 
 const Tab = createBottomTabNavigator();
@@ -26,7 +27,6 @@ function Placeholder({ title }: { title: string }) {
     </View>
   );
 }
-const CoachScreen = () => <Placeholder title="Coach" />;
 const YouScreen = () => <Placeholder title="You" />;
 
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
