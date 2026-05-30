@@ -1,14 +1,3 @@
-/**
- * BrainPace — App.tsx
- *
- * Setup:
- *   npx create-expo-app brainpace --template blank-typescript
- *   npx expo install react-native-svg
- *   npx expo install @react-navigation/native @react-navigation/bottom-tabs
- *   npx expo install react-native-screens react-native-safe-area-context
- *   npx expo install @expo-google-fonts/inter expo-font
- */
-
 import React from 'react';
 import { StatusBar, View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -18,6 +7,7 @@ import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_7
 import HomeScreen from './src/screens/HomeScreen';
 import LiveScreen from './src/screens/LiveScreen';
 import ReportScreen from './src/screens/ReportScreen';
+import StudyScreen from './src/screens/StudyScreen';
 import { colors } from './src/theme';
 
 const Tab = createBottomTabNavigator();
@@ -33,12 +23,11 @@ const CoachScreen = () => <Placeholder title="Coach" />;
 const YouScreen = () => <Placeholder title="You" />;
 
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
-  const icons: Record<string, string> = { Home: '⌂', Live: '◎', Report: '⊞', Coach: '✦', You: '○' };
-  const tint = focused ? colors.purp : colors.ts;
+  const icons: Record<string, string> = { Home: '\u2302', Live: '\u25CE', Report: '\u229E', Study: '\u25A3', Coach: '\u2726', You: '\u25CB' };
+  const tint = focused ? colors.violet : colors.textMuted;
   return (
     <View style={{ alignItems: 'center', width: 60 }}>
-      {focused && <View style={styles.activePill} />}
-      <Text style={[styles.iconText, { color: tint, marginTop: focused ? 0 : 6 }]}>{icons[label] || '•'}</Text>
+      <Text style={[styles.iconText, { color: tint }]}>{icons[label] || '\u2022'}</Text>
     </View>
   );
 }
@@ -49,14 +38,14 @@ export default function App() {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.ink} />
       <NavigationContainer>
         <Tab.Navigator
           screenOptions={({ route }) => ({
             headerShown: false,
             tabBarStyle: styles.tabBar,
-            tabBarActiveTintColor: colors.purp,
-            tabBarInactiveTintColor: colors.ts,
+            tabBarActiveTintColor: colors.violet,
+            tabBarInactiveTintColor: colors.textMuted,
             tabBarLabelStyle: styles.tabLabel,
             tabBarIcon: ({ focused }) => <TabIcon label={route.name} focused={focused} />,
           })}
@@ -64,6 +53,7 @@ export default function App() {
           <Tab.Screen name="Home" component={HomeScreen} />
           <Tab.Screen name="Live" component={LiveScreen} />
           <Tab.Screen name="Report" component={ReportScreen} />
+          <Tab.Screen name="Study" component={StudyScreen} />
           <Tab.Screen name="Coach" component={CoachScreen} />
           <Tab.Screen name="You" component={YouScreen} />
         </Tab.Navigator>
@@ -74,20 +64,15 @@ export default function App() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: colors.bg2,
-    borderTopColor: colors.bg3,
+    backgroundColor: colors.inkCard,
+    borderTopColor: colors.inkBorder,
     borderTopWidth: 1,
     height: 82,
     paddingBottom: 20,
     paddingTop: 8,
   },
-  tabLabel: { fontSize: 9, fontWeight: '600', marginTop: 4 },
-  activePill: {
-    width: 48, height: 4, borderRadius: 2,
-    backgroundColor: colors.purp, marginBottom: 6,
-    shadowColor: colors.purp, shadowOpacity: 0.6, shadowRadius: 8, shadowOffset: { width: 0, height: 0 },
-  },
-  iconText: { fontSize: 16 },
-  placeholder: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
-  placeholderText: { color: colors.ts, fontSize: 16, fontWeight: '600' },
+  tabLabel: { fontSize: 10, fontWeight: '500', marginTop: 4 },
+  iconText: { fontSize: 18 },
+  placeholder: { flex: 1, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  placeholderText: { color: colors.textMuted, fontSize: 16, fontWeight: '600' },
 });

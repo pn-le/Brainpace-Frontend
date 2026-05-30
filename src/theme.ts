@@ -1,45 +1,55 @@
-// ─── Design Tokens (matches Figma brainpace page exactly) ────────────────────
+// Design tokens from Pencil design file (brainpace-frontend.pen)
 
 export const colors = {
-  bg:      '#0C0C11',
-  bg2:     '#151520',
-  bg3:     '#1E1E28',
-  purp:    '#8752FD',
-  purpL:   '#A075FE',
-  purpD:   '#5A30BB',
-  teal:    '#1CD6BE',
-  warn:    '#FD5D43',
-  warnL:   '#FE9A3B',
-  good:    '#33DB85',
-  severe:  '#D91E2A',
-  tp:      '#F1F1F6',
-  ts:      '#888899',
-  tl:      '#555566',
-  white:   '#FFFFFF',
-  black:   '#000000',
-} as const;
+  // Backgrounds
+  ink:        '#0B0C10',
+  inkCard:    '#16171F',
+  inkBorder:  '#FFFFFF12',
+  bgBase:     '#0A1024',
+  bgDeep:     '#06111F',
+  bgElevated: '#101A33',
+  cardBg:     '#101A2E',
+  cardBorder: '#FFFFFF1A',
 
-export const spacing = {
-  xs: 4, sm: 8, md: 16, lg: 24, xl: 32,
-} as const;
+  // Text
+  textPrimary:   '#F8FAFC',
+  textSecondary: '#A7B3C7',
+  textMuted:     '#69779A',
 
-export const radius = {
-  sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, pill: 40,
+  // Accent
+  violet:  '#7C5CFF',
+  purple:  '#8B5CF6',
+  teal:    '#2EE6C8',
+  aqua:    '#5BE7FF',
+  blue:    '#3B82F6',
+
+  // Status
+  okGreen:      '#3FD17A',
+  coral:        '#FF5B6E',
+  signifOrange: '#FB7A45',
+  amber:        '#F5B84B',
+
+  // Bands
+  bandTheta: '#FF6A3D',
+  bandBeta:  '#2DD4BF',
+  bandAlpha: '#9B6BFF',
+  bandGamma: '#F5A524',
+  bandDelta: '#69779A',
+
+  white: '#FFFFFF',
+  black: '#000000',
 } as const;
 
 export const font = {
-  regular:  'Inter_400Regular',
-  medium:   'Inter_500Medium',
-  semibold: 'Inter_600SemiBold',
-  bold:     'Inter_700Bold',
+  family: 'Inter',
 } as const;
 
-// ─── Fatigue classification (from AWear TBR research) ────────────────────────
+// Fatigue classification — thresholds applied client-side from TBR
 export const FATIGUE_LEVELS = [
-  { state: 'alert',               label: 'Alert',               min: 0,   max: 2.0, color: colors.good,   bgColor: '#0A2618' },
-  { state: 'mild_fatigue',        label: 'Mild Fatigue',        min: 2.0, max: 3.0, color: colors.warnL,  bgColor: '#2A1A06' },
-  { state: 'significant_fatigue', label: 'Significant Fatigue', min: 3.0, max: 4.0, color: colors.warn,   bgColor: '#2A0E06' },
-  { state: 'severe_fatigue',      label: 'Severe Fatigue',      min: 4.0, max: 99,  color: colors.severe, bgColor: '#2A0608' },
+  { state: 'alert',               label: 'Alert',               min: 0,   max: 2.0, color: colors.okGreen,      bgColor: '#3FD17A1A' },
+  { state: 'mild_fatigue',        label: 'Mild Fatigue',        min: 2.0, max: 3.0, color: colors.amber,        bgColor: '#F5B84B1A' },
+  { state: 'significant_fatigue', label: 'Significant Fatigue', min: 3.0, max: 4.0, color: colors.coral,        bgColor: '#FF5B6E1A' },
+  { state: 'severe_fatigue',      label: 'Severe / Drowsiness', min: 4.0, max: 99,  color: colors.coral,        bgColor: '#FF5B6E2A' },
 ] as const;
 
 export function getTBRLevel(tbr: number) {
@@ -50,11 +60,11 @@ export function tbrToColor(tbr: number): string {
   return getTBRLevel(tbr).color;
 }
 
-// Band frequency ranges (Hz) — matches your bandpass_fft config
+// Band frequency ranges — matches backend bandpass_fft config
 export const BANDS = {
-  delta: { label: 'Delta', range: '1–4 Hz',  color: colors.tl },
-  theta: { label: 'Theta', range: '4–8 Hz',  color: colors.warn },
-  alpha: { label: 'Alpha', range: '8–13 Hz', color: colors.purp },
-  beta:  { label: 'Beta',  range: '13–30 Hz',color: colors.teal },
-  gamma: { label: 'Gamma', range: '30–50 Hz',color: colors.warnL },
+  delta: { label: 'Delta', range: '1–4 Hz',  color: colors.bandDelta },
+  theta: { label: 'Theta', range: '4–8 Hz',  color: colors.bandTheta },
+  alpha: { label: 'Alpha', range: '8–13 Hz', color: colors.bandAlpha },
+  beta:  { label: 'Beta',  range: '13–30 Hz',color: colors.bandBeta },
+  gamma: { label: 'Gamma', range: '30–50 Hz',color: colors.bandGamma },
 } as const;

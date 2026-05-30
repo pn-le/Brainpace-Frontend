@@ -5,22 +5,12 @@ import { colors } from '../theme';
 
 const TBR = 3.2;
 const TBR_MAX = 5;
-const THETA = '14.6e-6';
-const BETA = '4.6e-6';
-const THETA_PCT = 42;
-const BETA_PCT = 31;
 const TIME_LABELS = ['13:10', '13:20', '13:30', '13:40'];
 
 const CURVE: { x: number; y: number }[] = [
-  { x: 0.0, y: 0.84 },
-  { x: 0.15, y: 0.62 },
-  { x: 0.3, y: 0.44 },
-  { x: 0.39, y: 0.36 },
-  { x: 0.48, y: 0.55 },
-  { x: 0.56, y: 0.84 },
-  { x: 0.63, y: 0.76 },
-  { x: 0.73, y: 0.55 },
-  { x: 0.86, y: 0.3 },
+  { x: 0.0, y: 0.84 }, { x: 0.15, y: 0.62 }, { x: 0.3, y: 0.44 },
+  { x: 0.39, y: 0.36 }, { x: 0.48, y: 0.55 }, { x: 0.56, y: 0.84 },
+  { x: 0.63, y: 0.76 }, { x: 0.73, y: 0.55 }, { x: 0.86, y: 0.3 },
   { x: 1.0, y: 0.14 },
 ];
 
@@ -32,48 +22,35 @@ function catmullRom(pts: { x: number; y: number }[]): string {
     const p1 = pts[i];
     const p2 = pts[Math.min(pts.length - 1, i + 1)];
     const p3 = pts[Math.min(pts.length - 1, i + 2)];
-    const cp1x = p1.x + (p2.x - p0.x) / 6;
-    const cp1y = p1.y + (p2.y - p0.y) / 6;
-    const cp2x = p2.x - (p3.x - p1.x) / 6;
-    const cp2y = p2.y - (p3.y - p1.y) / 6;
-    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    d += ` C ${p1.x + (p2.x - p0.x) / 6} ${p1.y + (p2.y - p0.y) / 6}, ${p2.x - (p3.x - p1.x) / 6} ${p2.y - (p3.y - p1.y) / 6}, ${p2.x} ${p2.y}`;
   }
   return d;
 }
 
-// Mini vertical bar chart for band cards
-function MiniBars({ count, color }: { count: number; color: string }) {
-  const heights = [0.6, 0.9, 0.5, 0.8, 0.7, 0.95, 0.4, 0.85, 0.6, 0.75, 0.5, 0.8];
+function MiniBars({ color, heights }: { color: string; heights: number[] }) {
   return (
-    <View style={{ flexDirection: 'row', gap: 2, height: 20, alignItems: 'flex-end', marginTop: 8 }}>
-      {heights.slice(0, count).map((h, i) => (
-        <View key={i} style={{ width: 4, height: 20 * h, backgroundColor: color, borderRadius: 1 }} />
+    <View style={{ flexDirection: 'row', gap: 3, height: 26, alignItems: 'flex-end' }}>
+      {heights.map((h, i) => (
+        <View key={i} style={{ flex: 1, height: h, backgroundColor: color, borderRadius: 2 }} />
       ))}
     </View>
   );
 }
 
-function BandCard({
-  symbol, name, range, value, pct, rising, accent,
-}: {
+function BandCard({ symbol, name, range, value, pct, rising, accent, barHeights }: {
   symbol: string; name: string; range: string; value: string;
-  pct: number; rising: boolean; accent: string;
+  pct: number; rising: boolean; accent: string; barHeights: number[];
 }) {
   return (
-    <View style={[styles.bandCard, { borderLeftColor: accent }]}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: accent }} />
-        <Text style={[styles.bandSymName, { color: accent }]}>{symbol} {name}</Text>
+    <View style={[s.bandCard]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: accent }} />
+        <Text style={[s.bandLabel, { color: colors.textPrimary }]}>{symbol} {name}</Text>
       </View>
-      <Text style={styles.bandRange}>{range}</Text>
-      <View style={styles.bandValueRow}>
-        <Text style={styles.bandValue}>{value}</Text>
-        <Text style={styles.bandUnit}> V{'\u00B2'}/Hz</Text>
-      </View>
-      <Text style={[styles.bandDelta, { color: accent }]}>
-        {rising ? '\u2191' : '\u2193'} {pct}% vs base
-      </Text>
-      <MiniBars count={12} color={accent} />
+      <Text style={s.bandHz}>{range}</Text>
+      <Text style={s.bandVal}>{value} V{'\u00B2'}/Hz</Text>
+      <Text style={[s.bandDelta, { color: accent }]}>{rising ? '\u2191' : '\u2193'} {pct}% vs base</Text>
+      <MiniBars color={accent} heights={barHeights} />
     </View>
   );
 }
@@ -81,62 +58,45 @@ function BandCard({
 function TBRChart() {
   const { width } = useWindowDimensions();
   const W = width - 32;
-  const H = 144;
-  const padL = 32;
-  const padR = 12;
-  const padTop = 6;
-  const plotW = W - padL - padR;
-  const plotH = 116;
+  const H = 140;
+  const padL = 48; const padR = 8; const padTop = 0;
+  const plotW = W - padL - padR; const plotH = H;
   const zones = [
-    { label: 'Severe', color: colors.severe },
-    { label: 'Signif.', color: colors.warn },
-    { label: 'Mild', color: colors.warnL },
-    { label: 'Alert', color: colors.good },
+    { label: 'Severe', color: colors.textMuted },
+    { label: 'Signif.', color: colors.textMuted },
+    { label: 'Mild', color: colors.textMuted },
+    { label: 'Alert', color: colors.textMuted },
   ];
   const zoneH = plotH / 4;
-
   const px = (fx: number) => padL + fx * plotW;
   const py = (fy: number) => padTop + fy * plotH;
   const linePts = CURVE.map(p => ({ x: px(p.x), y: py(p.y) }));
   const lineD = catmullRom(linePts);
-  const areaD = lineD
-    ? `${lineD} L ${px(1)} ${padTop + plotH} L ${px(0)} ${padTop + plotH} Z`
-    : '';
+  const areaD = lineD ? `${lineD} L ${px(1)} ${padTop + plotH} L ${px(0)} ${padTop + plotH} Z` : '';
   const end = linePts[linePts.length - 1];
 
   return (
-    <View style={[styles.chartCard, { width: W }]}>
-      <Svg width={W} height={H}>
-        <Defs>
-          <LinearGradient id="tbrArea" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={colors.purp} stopOpacity="0.28" />
-            <Stop offset="1" stopColor={colors.purp} stopOpacity="0.0" />
-          </LinearGradient>
-        </Defs>
-
-        {zones.map((z, i) => (
-          <React.Fragment key={z.label}>
-            <Rect x={padL} y={padTop + i * zoneH} width={plotW} height={zoneH} fill={z.color} opacity={0.05} />
-            <Line x1={padL} y1={padTop + i * zoneH} x2={padL + plotW} y2={padTop + i * zoneH} stroke={colors.bg3} strokeWidth={1} opacity={0.5} />
-          </React.Fragment>
-        ))}
-
-        {areaD ? <Path d={areaD} fill="url(#tbrArea)" /> : null}
-        {lineD ? <Path d={lineD} stroke={colors.purpL} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" /> : null}
-
-        <Circle cx={end.x} cy={end.y} r={10} fill={colors.purp} opacity={0.25} />
-        <Circle cx={end.x} cy={end.y} r={5} fill={colors.purp} />
-        <Circle cx={end.x} cy={end.y} r={3} fill={colors.white} />
-      </Svg>
-
-      {zones.map((z, i) => (
-        <Text key={z.label} style={[styles.zoneLabel, { color: z.color, top: padTop + i * zoneH + zoneH / 2 - 5 }]}>{z.label}</Text>
-      ))}
-
-      <Text style={[styles.chartEndLabel, { left: Math.min(W - 26, end.x + 6), top: end.y - 16 }]}>{TBR.toFixed(1)}</Text>
-
-      <View style={[styles.timeAxis, { marginLeft: padL, width: plotW }]}>
-        {TIME_LABELS.map(t => <Text key={t} style={styles.timeTick}>{t}</Text>)}
+    <View style={{ position: 'relative' }}>
+      <View style={{ flexDirection: 'row', gap: 6 }}>
+        <View style={{ width: 42, height: H, justifyContent: 'space-between' }}>
+          {zones.map(z => <Text key={z.label} style={{ fontSize: 9, fontWeight: '500', color: z.color }}>{z.label}</Text>)}
+        </View>
+        <Svg width={plotW} height={H}>
+          <Defs>
+            <LinearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0" stopColor={colors.violet} stopOpacity="0.25" />
+              <Stop offset="1" stopColor={colors.violet} stopOpacity="0.0" />
+            </LinearGradient>
+          </Defs>
+          {[35, 70, 105].map(y => <Rect key={y} x={0} y={y} width={plotW} height={1} fill={colors.white} opacity={0.05} />)}
+          {areaD ? <Path d={`M ${linePts.map(p => `${p.x - padL} ${p.y}`).join(' L ')} L ${plotW} ${H} L 0 ${H} Z`} fill="url(#area)" /> : null}
+          <Path d={linePts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x - padL} ${p.y}`).join(' ')} stroke={colors.violet} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          <Circle cx={end.x - padL} cy={end.y} r={9} fill={colors.violet} opacity={0.25} />
+          <Circle cx={end.x - padL} cy={end.y} r={5} fill={colors.violet} stroke={colors.textPrimary} strokeWidth={2} />
+        </Svg>
+      </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6, paddingLeft: 48 }}>
+        {TIME_LABELS.map(t => <Text key={t} style={{ fontSize: 9, fontWeight: '500', color: colors.textMuted }}>{t}</Text>)}
       </View>
     </View>
   );
@@ -146,154 +106,142 @@ export default function HomeScreen() {
   const knobLeft = (TBR / TBR_MAX) * 100;
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
-      {/* Header — avatar LEFT, greeting RIGHT */}
-      <View style={styles.header}>
-        <View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View>
-        <View style={{ marginLeft: 12 }}>
-          <Text style={styles.greeting}>Good morning, Alex</Text>
-          <View style={styles.subRow}>
-            <View style={styles.connDot} />
-            <Text style={styles.subtitle}>AWear {'\u00B7'} Connected {'\u00B7'} 256 Hz</Text>
+    <ScrollView style={s.root} contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
+      {/* Header */}
+      <View style={s.header}>
+        <View style={s.avatar}><Text style={s.avatarText}>A</Text></View>
+        <View style={{ marginLeft: 12, flex: 1 }}>
+          <Text style={s.greeting}>Good morning, Alex</Text>
+          <View style={s.deviceRow}>
+            <View style={s.liveDot} />
+            <Text style={s.deviceText}>AWear {'\u00B7'} Connected {'\u00B7'} 256 Hz</Text>
           </View>
         </View>
       </View>
 
-      {/* TBR card */}
-      <View style={styles.tbrCard}>
-        {/* Single-line card header */}
-        <Text style={styles.cardHeader}>COGNITIVE STRAIN {'\u2014'} THETA / BETA RATIO (TBR)</Text>
+      {/* TBR Card */}
+      <View style={s.tbrCard}>
+        <Text style={s.cardTitle}>COGNITIVE STRAIN {'\u2014'} THETA / BETA RATIO (TBR)</Text>
 
-        {/* Rings + center */}
-        <View style={styles.ringWrap}>
-          <View style={[styles.glow, { backgroundColor: colors.warn + '14' }]} />
-          <Svg width={160} height={160}>
-            <Circle cx={80} cy={80} r={79} stroke={colors.bg3} strokeWidth={2} fill="none" opacity={0.6} />
-            <Circle cx={80} cy={80} r={50} stroke={colors.bg3} strokeWidth={2} fill="none" opacity={0.4} />
-          </Svg>
-          <View style={styles.ringCenter}>
-            <Text style={[styles.tbrNumber, { color: colors.warn }]}>{TBR.toFixed(1)}</Text>
-            <Text style={styles.tbrIndex}>TBR index</Text>
+        <View style={s.circleWrap}>
+          <View style={s.glowCircle}>
+            <Text style={[s.tbrNumber, { color: colors.coral }]}>{TBR.toFixed(1)}</Text>
+            <Text style={s.tbrLabel}>TBR index</Text>
           </View>
         </View>
 
-        {/* State pill with trend icon */}
-        <View style={styles.statePill}>
-          <Text style={styles.stateText}>{'\u2197'} SIGNIFICANT FATIGUE</Text>
+        <View style={s.pill}>
+          <Text style={s.pillText}>{'\u2197'} SIGNIFICANT FATIGUE</Text>
         </View>
 
-        {/* 0–5 slider */}
-        <View style={styles.sliderWrap}>
-          <View style={styles.sliderTrack}>
-            <View style={[styles.seg, { flex: 64, backgroundColor: colors.good }]} />
-            <View style={[styles.seg, { flex: 64, backgroundColor: colors.teal }]} />
-            <View style={[styles.seg, { flex: 64, backgroundColor: colors.warnL }]} />
-            <View style={[styles.seg, { flex: 48, backgroundColor: colors.warn }]} />
-            <View style={[styles.seg, { flex: 80, backgroundColor: colors.severe }]} />
-            <View style={[styles.knob, { left: `${knobLeft}%` }]} />
+        {/* Scale bar */}
+        <View style={s.scaleWrap}>
+          <View style={s.scaleBar}>
+            <View style={[s.scaleSeg, { flex: 2, backgroundColor: colors.okGreen }]} />
+            <View style={[s.scaleSeg, { flex: 1, backgroundColor: colors.amber }]} />
+            <View style={[s.scaleSeg, { flex: 1, backgroundColor: colors.signifOrange }]} />
+            <View style={[s.scaleSeg, { flex: 1, backgroundColor: colors.coral }]} />
+            <View style={[s.scaleMarker, { left: `${knobLeft}%` }]} />
           </View>
-          <View style={styles.tickRow}>
-            <Text style={styles.tick}>0</Text>
-            <Text style={styles.tick}>5</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+            <Text style={s.scaleLabel}>0</Text>
+            <Text style={s.scaleLabel}>5</Text>
           </View>
         </View>
 
-        <Text style={styles.formula}>TBR = {'\u03B8'} Power (4{'\u20138'} Hz) / {'\u03B2'} Power (13{'\u201330'} Hz)</Text>
-        <Text style={styles.formulaSub}>Computed via Welch PSD {'\u00B7'} 1-sec epochs {'\u00B7'} V{'\u00B2'}/Hz</Text>
+        <Text style={s.cap1}>TBR = {'\u03B8'} Power (4{'\u2013'}8 Hz) / {'\u03B2'} Power (13{'\u2013'}30 Hz)</Text>
+        <Text style={s.cap2}>Computed via Welch PSD {'\u00B7'} 1-sec epochs {'\u00B7'} V{'\u00B2'}/Hz</Text>
       </View>
 
-      {/* Band cards */}
-      <View style={styles.bandRow}>
-        <BandCard symbol={'\u03B8'} name="Theta" range="4{'\u2013'}8 Hz" value={THETA} pct={THETA_PCT} rising accent={colors.warn} />
-        <View style={{ width: 8 }} />
-        <BandCard symbol={'\u03B2'} name="Beta" range="13{'\u2013'}30 Hz" value={BETA} pct={BETA_PCT} rising={false} accent={colors.teal} />
+      {/* Band Cards */}
+      <View style={s.bandRow}>
+        <BandCard symbol={'\u03B8'} name="Theta" range="4\u20138 Hz" value="14.6e-6" pct={42} rising accent={colors.bandTheta}
+          barHeights={[24, 21, 13, 19, 22, 18, 14, 20, 21, 16, 16, 22, 22, 10]} />
+        <BandCard symbol={'\u03B2'} name="Beta" range="13\u201330 Hz" value="4.6e-6" pct={31} rising={false} accent={colors.bandBeta}
+          barHeights={[9, 14, 16, 13, 6, 12, 16, 15, 10, 9, 15, 16, 13, 6]} />
       </View>
 
       {/* TBR Over Time */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>TBR Over Time</Text>
-        <View style={styles.segControl}>
-          {['30m', '1h', '3h', '8h'].map((p, i) => (
-            <TouchableOpacity key={p} style={[styles.segPill, i === 0 && styles.segPillActive]}>
-              <Text style={[styles.segPillText, i === 0 && styles.segPillTextActive]}>{p}</Text>
-            </TouchableOpacity>
-          ))}
+      <View style={s.chartCard}>
+        <View style={s.chartHeader}>
+          <Text style={s.chartTitle}>TBR Over Time</Text>
+          <View style={s.segmented}>
+            {['30m', '1h', '3h', '8h'].map((p, i) => (
+              <TouchableOpacity key={p} style={[s.segPill, i === 0 && s.segPillActive]}>
+                <Text style={[s.segText, i === 0 && s.segTextActive]}>{p}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
+        <TBRChart />
       </View>
-      <TBRChart />
 
-      {/* Nudge banner */}
-      <TouchableOpacity style={styles.nudge} activeOpacity={0.85}>
-        <View style={styles.nudgeIcon}><Text style={{ fontSize: 16 }}>{'\u26A1'}</Text></View>
+      {/* Callout */}
+      <TouchableOpacity style={s.callout} activeOpacity={0.85}>
+        <View style={s.calloutIcon}><Text style={{ fontSize: 16, color: colors.textPrimary }}>{'\u26A1'}</Text></View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.nudgeTitle}>TBR {TBR.toFixed(1)} {'\u2014'} Take a break</Text>
-          <Text style={styles.nudgeSub}>Predicted severe in ~12 min at current slope</Text>
-          <Text style={styles.nudgeAction}>Start breathing exercise {'\u2192'}</Text>
+          <Text style={s.calloutTitle}>TBR {TBR.toFixed(1)} {'\u2014'} Take a break</Text>
+          <Text style={s.calloutSub}>Predicted severe in ~12 min at current slope</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+            <Text style={s.calloutAction}>Start adaptive music</Text>
+            <Text style={{ color: colors.violet, fontSize: 12 }}>{'\u2192'}</Text>
+          </View>
         </View>
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 16, paddingTop: 62 },
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.ink, paddingHorizontal: 16, paddingTop: 62 },
 
   header: { flexDirection: 'row', alignItems: 'center' },
-  avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.purp, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 17, fontWeight: '700', color: colors.white },
-  greeting: { fontSize: 20, fontWeight: '700', color: colors.white },
-  subRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 },
-  connDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.good },
-  subtitle: { fontSize: 11, color: colors.ts },
+  avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.violet, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
+  greeting: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
+  deviceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 },
+  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.okGreen },
+  deviceText: { fontSize: 12, fontWeight: '500', color: colors.textSecondary },
 
-  tbrCard: { marginTop: 16, backgroundColor: colors.bg2, borderRadius: 22, paddingTop: 16, paddingBottom: 18, paddingHorizontal: 16, alignItems: 'center', overflow: 'hidden' },
-  cardHeader: { fontSize: 10, fontWeight: '600', color: colors.ts, letterSpacing: 1.2, textAlign: 'center' },
+  tbrCard: { marginTop: 18, backgroundColor: colors.inkCard, borderRadius: 20, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: colors.inkBorder },
+  cardTitle: { fontSize: 11, fontWeight: '600', color: colors.textMuted, letterSpacing: 0.6, textAlign: 'center' },
 
-  ringWrap: { width: 160, height: 160, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
-  glow: { position: 'absolute', width: 150, height: 150, borderRadius: 75 },
-  ringCenter: { position: 'absolute', alignItems: 'center' },
-  tbrNumber: { fontSize: 68, fontWeight: '800', lineHeight: 76 },
-  tbrIndex: { fontSize: 12, color: colors.ts, marginTop: -2 },
+  circleWrap: { marginTop: 6, marginBottom: 2 },
+  glowCircle: { width: 172, height: 172, borderRadius: 86, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FF5B6E1A', shadowColor: colors.coral, shadowOpacity: 0.4, shadowRadius: 44, shadowOffset: { width: 0, height: 0 } },
+  tbrNumber: { fontSize: 64, fontWeight: '800', lineHeight: 72 },
+  tbrLabel: { fontSize: 12, color: colors.textMuted, marginTop: -2 },
 
-  statePill: { marginTop: 8, backgroundColor: colors.warn + '26', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 6 },
-  stateText: { fontSize: 10, fontWeight: '700', color: colors.warn, letterSpacing: 0.5 },
+  pill: { marginTop: 6, backgroundColor: '#FF5B6E1F', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 },
+  pillText: { fontSize: 11, fontWeight: '700', color: colors.coral, letterSpacing: 0.4 },
 
-  sliderWrap: { width: '100%', marginTop: 18, paddingHorizontal: 4 },
-  sliderTrack: { flexDirection: 'row', height: 8, borderRadius: 4, position: 'relative' },
-  seg: { height: 8 },
-  knob: { position: 'absolute', top: -3, marginLeft: -7, width: 14, height: 14, borderRadius: 7, backgroundColor: colors.white, borderWidth: 1.5, borderColor: colors.bg, shadowColor: colors.black, shadowOpacity: 0.4, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } },
-  tickRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  tick: { fontSize: 9, color: colors.tl },
+  scaleWrap: { width: '100%', marginTop: 14, paddingHorizontal: 2 },
+  scaleBar: { flexDirection: 'row', height: 8, borderRadius: 4, position: 'relative', overflow: 'hidden' },
+  scaleSeg: { height: 8 },
+  scaleMarker: { position: 'absolute', top: -3, marginLeft: -7, width: 14, height: 14, borderRadius: 7, backgroundColor: colors.textPrimary, borderWidth: 3, borderColor: colors.coral },
+  scaleLabel: { fontSize: 10, fontWeight: '500', color: colors.textMuted },
 
-  formula: { fontSize: 10, fontWeight: '500', color: colors.ts, marginTop: 14, alignSelf: 'flex-start', paddingLeft: 4 },
-  formulaSub: { fontSize: 9, color: colors.tl, marginTop: 3, alignSelf: 'flex-start', paddingLeft: 4 },
+  cap1: { fontSize: 11, fontWeight: '500', color: colors.textSecondary, marginTop: 10, textAlign: 'center' },
+  cap2: { fontSize: 10, fontWeight: '500', color: colors.textMuted, marginTop: 2, textAlign: 'center' },
 
-  bandRow: { flexDirection: 'row', marginTop: 14 },
-  bandCard: { flex: 1, backgroundColor: colors.bg2, borderRadius: 12, padding: 12, borderLeftWidth: 4 },
-  bandSymName: { fontSize: 11, fontWeight: '600' },
-  bandRange: { fontSize: 9, color: colors.tl, marginTop: 2 },
-  bandValueRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 6 },
-  bandValue: { fontSize: 18, fontWeight: '700', color: colors.white },
-  bandUnit: { fontSize: 9, color: colors.ts },
-  bandDelta: { fontSize: 9, marginTop: 4 },
+  bandRow: { flexDirection: 'row', gap: 12, marginTop: 18 },
+  bandCard: { flex: 1, backgroundColor: colors.inkCard, borderRadius: 16, padding: 14, gap: 8, borderWidth: 1, borderColor: colors.inkBorder },
+  bandLabel: { fontSize: 12, fontWeight: '600' },
+  bandHz: { fontSize: 10, fontWeight: '500', color: colors.textMuted },
+  bandVal: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+  bandDelta: { fontSize: 11, fontWeight: '600' },
 
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, marginBottom: 8 },
-  sectionTitle: { fontSize: 15, fontWeight: '600', color: colors.white },
-  segControl: { flexDirection: 'row', gap: 6 },
-  segPill: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12 },
-  segPillActive: { backgroundColor: colors.purp },
-  segPillText: { fontSize: 11, color: colors.ts },
-  segPillTextActive: { color: colors.white, fontWeight: '600' },
+  chartCard: { marginTop: 18, backgroundColor: colors.inkCard, borderRadius: 18, padding: 16, gap: 14, borderWidth: 1, borderColor: colors.inkBorder },
+  chartHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  chartTitle: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  segmented: { flexDirection: 'row', backgroundColor: colors.ink, borderRadius: 10, padding: 3, gap: 2, borderWidth: 1, borderColor: colors.inkBorder },
+  segPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
+  segPillActive: { backgroundColor: colors.violet },
+  segText: { fontSize: 11, fontWeight: '500', color: colors.textMuted },
+  segTextActive: { color: colors.textPrimary, fontWeight: '600' },
 
-  chartCard: { backgroundColor: colors.bg, borderRadius: 12, overflow: 'hidden', position: 'relative' },
-  zoneLabel: { position: 'absolute', left: 4, fontSize: 8, fontWeight: '600' },
-  chartEndLabel: { position: 'absolute', fontSize: 10, fontWeight: '700', color: colors.warn },
-  timeAxis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 2, paddingBottom: 6 },
-  timeTick: { fontSize: 8, color: colors.tl },
-
-  nudge: { flexDirection: 'row', backgroundColor: colors.purp, borderRadius: 14, padding: 14, marginTop: 16, alignItems: 'flex-start', gap: 12 },
-  nudgeIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFFFFF2E', alignItems: 'center', justifyContent: 'center' },
-  nudgeTitle: { fontSize: 14, fontWeight: '700', color: colors.white },
-  nudgeSub: { fontSize: 10, color: '#EDE7FF', marginTop: 3 },
-  nudgeAction: { fontSize: 10, fontWeight: '600', color: colors.white, marginTop: 6 },
+  callout: { flexDirection: 'row', backgroundColor: '#7C5CFF1F', borderRadius: 16, padding: 14, marginTop: 18, gap: 12, borderWidth: 1, borderColor: '#7C5CFF66' },
+  calloutIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: colors.violet, alignItems: 'center', justifyContent: 'center' },
+  calloutTitle: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  calloutSub: { fontSize: 12, fontWeight: '500', color: colors.textSecondary, marginTop: 3 },
+  calloutAction: { fontSize: 12, fontWeight: '700', color: colors.violet, marginTop: 4 },
 });
