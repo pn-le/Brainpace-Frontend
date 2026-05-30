@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
 import Svg, { Circle, Path, Rect, Line, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { colors } from '../theme';
+import { colors, getTBRLevel } from '../theme';
+import { useEEGStream, formatPower } from '../hooks/useEEGStream';
 
-const TBR = 3.2;
 const TBR_MAX = 5;
 const TIME_LABELS = ['13:10', '13:20', '13:30', '13:40'];
 
@@ -103,7 +103,9 @@ function TBRChart() {
 }
 
 export default function HomeScreen({ navigation }: any) {
-  const knobLeft = (TBR / TBR_MAX) * 100;
+  const { tbr: TBR, bands, fatigueState, prediction, isConnected } = useEEGStream();
+  const level = getTBRLevel(TBR);
+  const knobLeft = Math.min(100, (TBR / TBR_MAX) * 100);
 
   return (
     <ScrollView style={s.root} contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
@@ -113,8 +115,8 @@ export default function HomeScreen({ navigation }: any) {
         <View style={{ marginLeft: 12, flex: 1 }}>
           <Text style={s.greeting}>Good morning, Alex</Text>
           <View style={s.deviceRow}>
-            <View style={s.liveDot} />
-            <Text style={s.deviceText}>AWear {'\u00B7'} Connected {'\u00B7'} 256 Hz</Text>
+            <View style={[s.liveDot, !isConnected && { backgroundColor: colors.coral }]} />
+            <Text style={s.deviceText}>AWear {'\u00B7'} {isConnected ? 'Connected' : 'Disconnected'} {'\u00B7'} 256 Hz</Text>
           </View>
         </View>
       </View>
@@ -125,13 +127,13 @@ export default function HomeScreen({ navigation }: any) {
 
         <View style={s.circleWrap}>
           <View style={s.glowCircle}>
-            <Text style={[s.tbrNumber, { color: colors.coral }]}>{TBR.toFixed(1)}</Text>
+            <Text style={[s.tbrNumber, { color: level.color }]}>{TBR.toFixed(1)}</Text>
             <Text style={s.tbrLabel}>TBR index</Text>
           </View>
         </View>
 
         <View style={s.pill}>
-          <Text style={s.pillText}>{'\u2197'} SIGNIFICANT FATIGUE</Text>
+          <Text style={[s.pillText, { color: level.color }]}>{'\u2197'} {level.label.toUpperCase()}</Text>
         </View>
 
         {/* Scale bar */}
@@ -155,9 +157,9 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* Band Cards */}
       <View style={s.bandRow}>
-        <BandCard symbol={'\u03B8'} name="Theta" range="4\u20138 Hz" value="14.6e-6" pct={42} rising accent={colors.bandTheta}
+        <BandCard symbol={'\u03B8'} name="Theta" range="4\u20138 Hz" value={formatPower(bands.theta)} pct={42} rising accent={colors.bandTheta}
           barHeights={[24, 21, 13, 19, 22, 18, 14, 20, 21, 16, 16, 22, 22, 10]} />
-        <BandCard symbol={'\u03B2'} name="Beta" range="13\u201330 Hz" value="4.6e-6" pct={31} rising={false} accent={colors.bandBeta}
+        <BandCard symbol={'\u03B2'} name="Beta" range="13\u201330 Hz" value={formatPower(bands.beta)} pct={31} rising={false} accent={colors.bandBeta}
           barHeights={[9, 14, 16, 13, 6, 12, 16, 15, 10, 9, 15, 16, 13, 6]} />
       </View>
 
@@ -180,8 +182,8 @@ export default function HomeScreen({ navigation }: any) {
       <TouchableOpacity style={s.callout} activeOpacity={0.85}>
         <View style={s.calloutIcon}><Text style={{ fontSize: 16, color: colors.textPrimary }}>{'\u26A1'}</Text></View>
         <View style={{ flex: 1 }}>
-          <Text style={s.calloutTitle}>TBR {TBR.toFixed(1)} {'\u2014'} Take a break</Text>
-          <Text style={s.calloutSub}>Predicted severe in ~12 min at current slope</Text>
+          <Text style={s.calloutTitle}>TBR {TBR.toFixed(1)} {'\u2014'} {prediction?.recommendation ?? 'Take a break'}</Text>
+          <Text style={s.calloutSub}>{prediction?.predicted_severe_in_min ? `Predicted severe in ~${prediction.predicted_severe_in_min} min` : 'Monitor your cognitive strain'}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
             <Text style={s.calloutAction}>Start adaptive music</Text>
             <Text style={{ color: colors.violet, fontSize: 12 }}>{'\u2192'}</Text>
