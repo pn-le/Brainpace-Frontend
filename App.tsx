@@ -15,6 +15,7 @@ import LiveMonitorScreen from './src/screens/LiveMonitorScreen';
 import RecoveryScreen from './src/screens/RecoveryScreen';
 import SummaryScreen from './src/screens/SummaryScreen';
 import CoachScreen from './src/screens/CoachScreen';
+import DebugScreen from './src/screens/DebugScreen';
 import { colors } from './src/theme';
 
 const Tab = createBottomTabNavigator();
@@ -32,7 +33,7 @@ const YouScreen = () => <Placeholder title="You" />;
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   const icons: Record<string, string> = {
     Home: '\u2302', Live: '\u25CE', Report: '\u229E',
-    Study: '\u25A3', Coach: '\u2726', You: '\u25CB',
+    Study: '\u25A3', Coach: '\u2726', Debug: '\u2699', You: '\u25CB',
   };
   const tint = focused ? colors.violet : colors.textMuted;
   return (
@@ -59,6 +60,7 @@ function MainTabs() {
       <Tab.Screen name="Report" component={ReportScreen} />
       <Tab.Screen name="Study" component={StudyScreen} />
       <Tab.Screen name="Coach" component={CoachScreen} />
+      <Tab.Screen name="Debug" component={DebugScreen} />
       <Tab.Screen name="You" component={YouScreen} />
     </Tab.Navigator>
   );
