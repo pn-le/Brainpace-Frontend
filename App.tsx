@@ -17,7 +17,7 @@ import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_7
 
 import HomeScreen from './src/screens/HomeScreen';
 import LiveScreen from './src/screens/LiveScreen';
-import ReportScreen from './src/screens/ReportScreen';
+import StudyScreen from './src/screens/StudyScreen';
 import { colors } from './src/theme';
 
 const Tab = createBottomTabNavigator();
@@ -63,7 +63,7 @@ export default function App() {
         >
           <Tab.Screen name="Home" component={HomeScreen} />
           <Tab.Screen name="Live" component={LiveScreen} />
-          <Tab.Screen name="Report" component={ReportScreen} />
+          <Tab.Screen name="Report" component={StudyScreen} />
           <Tab.Screen name="Coach" component={CoachScreen} />
           <Tab.Screen name="You" component={YouScreen} />
         </Tab.Navigator>

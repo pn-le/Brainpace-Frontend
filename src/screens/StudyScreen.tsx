@@ -8,9 +8,9 @@ const SW = Dimensions.get('window').width;
 const CHART_W = SW - 56;
 
 const PAST_SESSIONS = [
-  { name: 'Linear Algebra', dur: '2h', tbr: 2.8, breaks: 3, grade: 'B+', color: colors.warnL },
-  { name: 'Organic Chem',   dur: '1h40', tbr: 3.6, breaks: 1, grade: 'C',  color: colors.warn },
-  { name: 'Neuroscience',   dur: '1h15', tbr: 2.1, breaks: 2, grade: 'A-', color: colors.good },
+  { label: 'Monday Session',    time: '9:30 AM',  dur: '2h',     tbr: 2.8, breaks: 3 },
+  { label: 'Friday Session',    time: '2:15 PM',  dur: '1h 40m', tbr: 3.6, breaks: 1 },
+  { label: 'Wednesday Session', time: '11:00 AM', dur: '1h 15m', tbr: 2.1, breaks: 2 },
 ];
 
 // Chart curve data (fractions of plot area, y=0 top=Severe, y=1 bottom=Alert)
@@ -226,18 +226,22 @@ export default function StudyScreen() {
 
       {/* Past Sessions */}
       <Text style={styles.sectionTitle}>Past Sessions</Text>
-      {PAST_SESSIONS.map(se => (
-        <View key={se.name} style={styles.sessionRow}>
-          <View style={[styles.sessionBorder, { backgroundColor: se.color }]} />
-          <View style={styles.sessionInfo}>
-            <Text style={styles.sessionName}>{se.name}</Text>
-            <Text style={styles.sessionMeta}>{se.dur} \u00B7 TBR {se.tbr} \u00B7 {se.breaks} break{se.breaks !== 1 ? 's' : ''}</Text>
+      {PAST_SESSIONS.map(se => {
+        const level = getTBRLevel(se.tbr);
+        return (
+          <View key={se.label} style={styles.sessionRow}>
+            <View style={[styles.sessionBorder, { backgroundColor: level.color }]} />
+            <View style={styles.sessionInfo}>
+              <Text style={styles.sessionName}>{se.label}</Text>
+              <Text style={styles.sessionMeta}>{se.time} \u00B7 {se.dur} \u00B7 {se.breaks} break{se.breaks !== 1 ? 's' : ''}</Text>
+            </View>
+            <View style={styles.tbrBadge}>
+              <Text style={[styles.tbrBadgeValue, { color: level.color }]}>{se.tbr.toFixed(1)}</Text>
+              <Text style={styles.tbrBadgeLabel}>TBR</Text>
+            </View>
           </View>
-          <View style={[styles.gradeBadge, { backgroundColor: se.color }]}>
-            <Text style={styles.gradeText}>{se.grade}</Text>
-          </View>
-        </View>
-      ))}
+        );
+      })}
 
       <View style={{ height: 100 }} />
     </ScrollView>
@@ -286,6 +290,7 @@ const styles = StyleSheet.create({
   sessionInfo: { flex: 1, paddingVertical: 14, paddingHorizontal: 12 },
   sessionName: { fontSize: 14, fontWeight: '600', color: colors.tp },
   sessionMeta: { fontSize: 10, color: colors.ts, marginTop: 4 },
-  gradeBadge: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  gradeText: { fontSize: 12, fontWeight: '700', color: colors.bg },
+  tbrBadge: { alignItems: 'center', justifyContent: 'center', marginRight: 14, gap: 1 },
+  tbrBadgeValue: { fontSize: 18, fontWeight: '700' },
+  tbrBadgeLabel: { fontSize: 8, fontWeight: '600', color: colors.ts, letterSpacing: 0.5 },
 });
