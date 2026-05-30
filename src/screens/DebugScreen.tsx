@@ -3,8 +3,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { api } from '../api/client';
-import { BASE_URL, PARTICIPANT_ID } from '../api/config';
+import { API_URL, fetchParticipants, fetchSummary, fetchCognitionSeries, resolveParticipantId } from '../api';
 import { colors } from '../theme';
 
 type Status = 'idle' | 'loading' | 'ok' | 'error';
@@ -16,14 +15,21 @@ interface EndpointResult {
   ms?: number;
 }
 
+async function getJSON(path: string) {
+  const res = await fetch(`${API_URL}${path}`);
+  if (!res.ok) throw new Error(`${res.status} ${path}`);
+  return res.json();
+}
+
 const ENDPOINTS = [
-  { key: 'health', label: 'GET /health', fn: () => api.health() },
-  { key: 'members', label: 'GET /members', fn: () => api.members() },
-  { key: 'summary', label: `GET /summary/${PARTICIPANT_ID}`, fn: () => api.summary() },
-  { key: 'waveform', label: `GET /live/${PARTICIPANT_ID}/waveform`, fn: () => api.waveform() },
-  { key: 'cognition', label: `GET /cognition/${PARTICIPANT_ID}/series`, fn: () => api.cognitionSeries() },
-  { key: 'tiredness', label: `GET /tiredness/${PARTICIPANT_ID}`, fn: () => api.tiredness() },
-  { key: 'mood', label: `GET /mood/${PARTICIPANT_ID}`, fn: () => api.mood() },
+  { key: 'health', label: 'GET /health', fn: () => getJSON('/health') },
+  { key: 'members', label: 'GET /members', fn: () => fetchParticipants() },
+  { key: 'resolve', label: 'resolveParticipantId()', fn: () => resolveParticipantId() },
+  { key: 'summary', label: 'GET /summary/{pid}', fn: async () => { const pid = await resolveParticipantId(); return pid ? fetchSummary(pid) : 'No participant'; } },
+  { key: 'cognition', label: 'GET /cognition/{pid}/series', fn: async () => { const pid = await resolveParticipantId(); return pid ? fetchCognitionSeries(pid) : 'No participant'; } },
+  { key: 'waveform', label: 'GET /live/{pid}/waveform', fn: async () => { const pid = await resolveParticipantId(); return pid ? getJSON(`/live/${pid}/waveform?minutes=5`) : 'No participant'; } },
+  { key: 'tiredness', label: 'GET /tiredness/{pid}', fn: async () => { const pid = await resolveParticipantId(); return pid ? getJSON(`/tiredness/${pid}`) : 'No participant'; } },
+  { key: 'mood', label: 'GET /mood/{pid}', fn: async () => { const pid = await resolveParticipantId(); return pid ? getJSON(`/mood/${pid}`) : 'No participant'; } },
 ];
 
 function truncate(obj: any): string {
@@ -61,8 +67,8 @@ export default function DebugScreen() {
   return (
     <ScrollView style={s.root}>
       <Text style={s.title}>Debug: API Integration</Text>
-      <Text style={s.sub}>Base URL: {BASE_URL}</Text>
-      <Text style={s.sub}>Participant: {PARTICIPANT_ID}</Text>
+      <Text style={s.sub}>Base URL: {API_URL}</Text>
+      <Text style={s.sub}>Participant: auto-resolved from /members</Text>
 
       <TouchableOpacity style={s.callAllBtn} onPress={callAll} activeOpacity={0.8}>
         <Text style={s.callAllText}>Call All Endpoints</Text>
